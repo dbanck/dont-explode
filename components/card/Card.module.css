@@ -1,0 +1,32 @@
+.container {
+  width: 240px;
+  height: 420px;
+  background: grey;
+  display: flex;
+  flex-direction: column;
+  border-radius: 15px;
+  border: 8px solid darkgoldenrod;
+}
+
+.title {
+  padding: 16px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.image {
+  max-height: 200px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.description {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  margin: 16px;
+  max-height: 224px;
+  overflow: hidden;
+}
