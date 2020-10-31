@@ -1,0 +1,61 @@
+{
+  "name": "ts-node-boilerplate",
+  "version": "0.1.0",
+  "description": "Boilerplate for a NodeJS project with TypeScript, Prettier, ESLint and Jest.",
+  "private": true,
+  "scripts": {
+    "start": "node dist/app.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:coverage:open": "open-cli coverage/lcov-report/index.html",
+    "validate": "tsc --noEmit && yarn lint && yarn prettier:run",
+    "lint": "eslint \"**/*.{js,ts}\" --fix",
+    "lint:staged": "eslint --fix --quiet",
+    "tsc:staged": "tsc --noEmit --skipLibCheck --experimentalDecorators --esModuleInterop",
+    "prettier:run": "prettier . --write --ignore-path .gitignore",
+    "prettier:staged": "prettier --write --ignore-path .gitignore"
+  },
+  "author": "weluse GmbH",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "errorhandler": "^1.5.1",
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/errorhandler": "^1.5.0",
+    "@types/eslint": "^7.2.4",
+    "@types/express": "^4.17.6",
+    "@types/jest": "^26.0.15",
+    "@types/socket.io": "^2.1.11",
+    "@typescript-eslint/eslint-plugin": "^4.6.0",
+    "@typescript-eslint/parser": "^4.6.0",
+    "eslint": "^7.12.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^4.3.0",
+    "jest": "^26.6.1",
+    "lint-staged": "^10.5.1",
+    "open-cli": "^6.0.1",
+    "prettier": "^2.1.2",
+    "ts-jest": "^26.4.3",
+    "ts-node": "^9.0.0",
+    "ts-node-dev": "^1.0.0",
+    "typescript": "^4.0.5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "yarn lint:staged",
+      "yarn prettier:staged"
+    ],
+    "*.ts": "yarn tsc:staged"
+  }
+}

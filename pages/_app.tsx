@@ -1,9 +1,20 @@
-import type { AppProps } from 'next/app'
+import type { AppProps } from "next/app";
+import { useEffect } from "react";
+import socketIOClient from "socket.io-client";
 
-import '../styles/globals.css'
+const ENDPOINT = "http://localhost:5555";
 
-function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
-}
+import "../styles/globals.css";
 
-export default MyApp
+const MyApp = ({ Component, pageProps }: AppProps) => {
+  useEffect(() => {
+    const socket = socketIOClient(ENDPOINT);
+    socket.on("FromAPI", (data) => {
+      console.log(data);
+    });
+  }, []);
+
+  return <Component {...pageProps} />;
+};
+
+export default MyApp;
