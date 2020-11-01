@@ -1,0 +1,8 @@
+.cardWrapper {
+  position: fixed;
+  left: 30%;
+  bottom: 90px;
+  background: red;
+  display: flex;
+  justify-content: center;
+}

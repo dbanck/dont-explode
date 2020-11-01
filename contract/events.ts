@@ -24,6 +24,13 @@ export interface GameState {
   hands: {
     [key: string]: Card[];
   };
+  currentPlayer: string;
+  discard: Card[];
+  deadPlayers: string[];
+  modifier?: {
+    card: Card;
+    target: string;
+  };
 }
 
 export enum CardType {
@@ -32,6 +39,9 @@ export enum CardType {
   Shuffle,
   SeeTheFuture,
   Nothing,
+  Skip,
+  Attack,
+  Favor,
 }
 
 export interface Card {

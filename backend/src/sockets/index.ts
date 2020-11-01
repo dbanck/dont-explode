@@ -1,4 +1,3 @@
-import { KeyObject } from "crypto";
 import { Server } from "http";
 import socketIO, { Socket } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
@@ -19,10 +18,25 @@ const games: { [key: string]: Game } = {};
 const gameState: { [key: string]: GameState } = {};
 
 const exampleDeck = [
-  { id: uuidv4(), type: CardType.Bomb },
-  { id: uuidv4(), type: CardType.Bomb },
   { id: uuidv4(), type: CardType.Defuse },
   { id: uuidv4(), type: CardType.Defuse },
+  { id: uuidv4(), type: CardType.SeeTheFuture },
+  { id: uuidv4(), type: CardType.SeeTheFuture },
+  { id: uuidv4(), type: CardType.SeeTheFuture },
+  { id: uuidv4(), type: CardType.SeeTheFuture },
+  { id: uuidv4(), type: CardType.SeeTheFuture },
+  { id: uuidv4(), type: CardType.Shuffle },
+  { id: uuidv4(), type: CardType.Shuffle },
+  { id: uuidv4(), type: CardType.Shuffle },
+  { id: uuidv4(), type: CardType.Shuffle },
+  { id: uuidv4(), type: CardType.Skip },
+  { id: uuidv4(), type: CardType.Skip },
+  { id: uuidv4(), type: CardType.Skip },
+  { id: uuidv4(), type: CardType.Skip },
+  { id: uuidv4(), type: CardType.Attack },
+  { id: uuidv4(), type: CardType.Attack },
+  { id: uuidv4(), type: CardType.Attack },
+  { id: uuidv4(), type: CardType.Attack },
   { id: uuidv4(), type: CardType.Nothing },
   { id: uuidv4(), type: CardType.Nothing },
   { id: uuidv4(), type: CardType.Nothing },
@@ -56,14 +70,29 @@ const sendUpdateMove = (
   game: Game,
   deck: GameState["deck"],
   hands: GameState["hands"],
+  currentPlayer: string,
+  discard: GameState["discard"],
 ) => {
   game.players.forEach((player) => {
     io.to(users[player].socketId).emit("update_move", {
       hand: hands[player],
       deck: deck.length,
       hands: objectMap(hands, (hand: Card[]) => hand.length),
+      currentPlayer,
+      discard,
     });
   });
+};
+
+const getNextPlayer = (currentPlayer: string, players: string[]) => {
+  const curr = players.indexOf(currentPlayer);
+  const next = curr + 1 > players.length - 1 ? 0 : curr + 1;
+
+  return players[next];
+};
+
+const getWinner = (players: string[], deadPlayers: string[]) => {
+  return players.filter((player) => !deadPlayers.includes(player))[0];
 };
 
 export function createSocketServer(server: Server) {
@@ -115,18 +144,38 @@ export function createSocketServer(server: Server) {
       }
 
       const game = games[gameId];
-      const deck: GameState["deck"] = shuffle([...exampleDeck]);
+      let deck: GameState["deck"] = shuffle([...exampleDeck]);
       const hands: GameState["hands"] = {};
+      const currentPlayer = userId;
+
       game.players.forEach((player) => {
-        hands[player] = deck.splice(0, 3); // deal 3 cards to each player
+        hands[player] = [
+          ...deck.splice(0, 4),
+          {
+            id: uuidv4(),
+            type: CardType.Defuse,
+          },
+        ]; // deal 5 cards to each player
       });
+
+      for (let i = 0; i < game.players.length; i += 1) {
+        deck.push({
+          id: uuidv4(),
+          type: CardType.Bomb,
+        });
+      }
+
+      deck = shuffle(deck);
 
       gameState[gameId] = {
         deck,
         hands,
+        currentPlayer,
+        discard: [],
+        deadPlayers: [],
       };
 
-      sendUpdateMove(game, deck, hands);
+      sendUpdateMove(game, deck, hands, currentPlayer, []);
 
       games[gameId].status = GameStatus.Started;
 
@@ -141,6 +190,11 @@ export function createSocketServer(server: Server) {
 
       const game = games[gameId];
 
+      if (gameState[gameId].currentPlayer !== userId) {
+        console.warn("It's not the players turn", userId, "in game", gameId);
+        return;
+      }
+
       if (gameState[gameId].deck.length <= 0) {
         console.warn(
           "There are no cards left to draw for game with id",
@@ -150,38 +204,151 @@ export function createSocketServer(server: Server) {
       }
 
       const card = gameState[gameId].deck.splice(0, 1)[0];
-      gameState[gameId].hands[userId].push(card);
+
+      // Drawn a bomb
+      if (card.type === CardType.Bomb) {
+        const hand = gameState[gameId].hands[userId];
+        const defuse = hand.findIndex((card) => card.type === CardType.Defuse);
+
+        console.log("User", userId, "has drawn a bomb");
+
+        if (defuse >= 0) {
+          const defuseCard = gameState[gameId].hands[userId].splice(
+            defuse,
+            1,
+          )[0]; // remove defuse card
+          gameState[gameId].discard.push(defuseCard);
+
+          // put bomb back into deck
+          gameState[gameId].deck.push(card);
+          gameState[gameId].deck = shuffle(gameState[gameId].deck);
+        } else {
+          gameState[gameId].discard.push(card);
+          gameState[gameId].hands[userId] = []; // u dead bro
+
+          // annouce the death of the player
+          game.players.forEach((player) => {
+            io.to(users[player].socketId).emit("game_event", {
+              player: userId,
+              condition: "lose",
+            });
+          });
+          gameState[gameId].deadPlayers.push(userId);
+
+          if (
+            gameState[gameId].deadPlayers.length ===
+            game.players.length - 1
+          ) {
+            // find the winner
+            const winner = getWinner(
+              game.players,
+              gameState[gameId].deadPlayers,
+            );
+
+            // announce the winner
+            game.players.forEach((player) => {
+              io.to(users[player].socketId).emit("game_event", {
+                player: winner,
+                condition: "win",
+              });
+            });
+          }
+        }
+      } else {
+        gameState[gameId].hands[userId].push(card);
+      }
 
       console.log("User", userId, "has drawn card", card);
 
       const deck = gameState[gameId].deck;
       const hands = gameState[gameId].hands;
+      const discard = gameState[gameId].discard;
+      const modifier = gameState[gameId].modifier;
+      let nextPlayer = gameState[gameId].currentPlayer;
 
-      sendUpdateMove(game, deck, hands);
-    });
+      if (modifier) {
+        if (modifier.card.type === CardType.Attack) {
+          nextPlayer = modifier.target;
+        }
 
-    socket.on("play_card", (gameId: string, cardId: string) => {
-      if (!games[gameId] || !gameState[gameId]) {
-        console.warn("Cannot play card for game with id", { gameId, cardId });
-        return;
+        gameState[gameId].modifier = undefined; // clear modifier for next round
+      } else {
+        nextPlayer = getNextPlayer(
+          gameState[gameId].currentPlayer,
+          game.players,
+        );
+        gameState[gameId].currentPlayer = nextPlayer;
       }
 
-      const game = games[gameId];
-
-      const card = gameState[gameId].hands[userId].find(
-        (card) => card.id === cardId,
-      );
-      gameState[gameId].hands[userId] = gameState[gameId].hands[userId].filter(
-        (card) => card.id !== cardId,
-      );
-
-      console.log("played card", card);
-
-      const deck = gameState[gameId].deck; // this might get altered by the card action
-      const hands = gameState[gameId].hands;
-
-      sendUpdateMove(game, deck, hands);
+      sendUpdateMove(game, deck, hands, nextPlayer, discard);
     });
+
+    socket.on(
+      "play_card",
+      (gameId: string, cardId: string, targetPlayer?: string) => {
+        if (!games[gameId] || !gameState[gameId]) {
+          console.warn("Cannot play card for game with id", { gameId, cardId });
+          return;
+        }
+
+        if (gameState[gameId].currentPlayer !== userId) {
+          console.warn("It's not the players turn", userId, "in game", gameId);
+          return;
+        }
+
+        const game = games[gameId];
+        const cardIndex = gameState[gameId].hands[userId].findIndex(
+          (card) => card.id === cardId && card.type !== CardType.Defuse,
+        );
+
+        if (cardIndex < 0) {
+          console.warn("Cannot play card for game with id", { gameId, cardId });
+          return;
+        }
+
+        const card = gameState[gameId].hands[userId].splice(cardIndex, 1)[0];
+
+        console.log("User", userId, "played card", card);
+        gameState[gameId].discard.push(card);
+
+        let nextPlayer = gameState[gameId].currentPlayer;
+
+        //
+        // Cards
+        //
+        // Skip
+        if (card.type === CardType.Skip) {
+          nextPlayer = getNextPlayer(nextPlayer, game.players);
+          gameState[gameId].currentPlayer = nextPlayer;
+        }
+        // See the future
+        if (card.type === CardType.SeeTheFuture) {
+          socket.emit("play_cart_event", {
+            card: CardType.SeeTheFuture,
+            cards: gameState[gameId].deck.slice(0, 3),
+          });
+        }
+        // Shuffle
+        if (card.type === CardType.Shuffle) {
+          gameState[gameId].deck = shuffle(gameState[gameId].deck);
+        }
+        // Attack
+        if (card.type === CardType.Attack) {
+          nextPlayer = getNextPlayer(nextPlayer, game.players);
+          gameState[gameId].currentPlayer = nextPlayer;
+          gameState[gameId].modifier = {
+            card,
+            target: nextPlayer,
+          };
+        }
+
+        const deck = gameState[gameId].deck; // this might get altered by the card action
+        const hands = gameState[gameId].hands;
+        const discard = gameState[gameId].discard;
+
+        sendUpdateMove(game, deck, hands, nextPlayer, discard);
+      },
+    );
 
     socket.on("leave_game", (gameId: string) => {
       if (!games[gameId]) {
