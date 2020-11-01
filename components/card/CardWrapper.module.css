@@ -1,8 +1,22 @@
 .cardWrapper {
   position: fixed;
-  left: 30%;
-  bottom: 90px;
-  background: red;
-  display: flex;
-  justify-content: center;
+  width: 100%;
+  transition: bottom 0.2s ease-in-out;
+}
+
+.cardWrapper:not(:hover) {
+  bottom: 100px !important;
+}
+
+.opponent,
+.opponent:not(:hover) {
+  bottom: auto !important;
+}
+
+.item {
+  position: absolute;
+}
+
+.item:not(:hover) {
+  z-index: -1;
 }

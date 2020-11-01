@@ -40,7 +40,9 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const router = useRouter();
-  const { handleSubmit, register, errors } = useForm<CreateGameForm>();
+  const { handleSubmit, register, errors } = useForm<CreateGameForm>({
+    defaultValues: { name: "Tolles Spiel" },
+  });
 
   if (!user) {
     return null;

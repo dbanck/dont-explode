@@ -17,12 +17,12 @@ const Card: React.FC<ICardProps> = ({
   title,
   description,
   imageUrl,
-  additionalClass,
+  additionalClass = "",
 }) => {
   return (
     <div
-      className={`${styles.container} ${
-        isBackface && `${styles.backface} noScale`
+      className={`card ${styles.container} ${
+        isBackface ? `${styles.backface} noScale` : ""
       } ${additionalClass}`}
     >
       {!isBackface && (

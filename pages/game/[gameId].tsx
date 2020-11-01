@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import CardComponent from "../../components/card/Card";
+import CardWrapper from "../../components/card/CardWrapper";
 import { Card, CardType, Game, GameStatus, User } from "../../contract/events";
 import {
   handleMessage,
@@ -181,59 +182,104 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
   return (
     <div>
       <div>
-        {otherPlayers.map((player) => {
-          return (
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                background: currentPlayer === player && "red",
-              }}
-            >
-              {Array.from(Array(hands[player]).keys()).map((card) => (
-                <CardComponent isBackface={true} key={card} />
-              ))}
-            </div>
-          );
-        })}
-
-        <h2>Deck size: {deck}</h2>
-        <button onClick={handleDrawCard}>Draw</button>
-
         <div
           style={{
             position: "relative",
-            height: 400,
-            width: 400,
-            background: "grey",
+            height: "100vh",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
           }}
         >
-          {discardPile.map((card, index) => (
+          <div
+            style={{
+              position: "relative",
+              transform: "scale(0.9)",
+              height: 300,
+              width: 400,
+            }}
+          >
+            {Array.from(Array(deck).keys()).map((card, index) => (
+              <div
+                key={card}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: "50%",
+                  transform: `translateX(-50%)`,
+                }}
+                onClick={handleDrawCard}
+              >
+                <CardComponent isBackface={true} key={card} />
+              </div>
+            ))}
             <div
-              key={card.id}
-              style={{ position: "absolute", top: 0, left: index * 15 }}
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                background: "rgba(255,255,255,0.7)",
+                borderRadius: "100%",
+                padding: 20,
+                fontSize: 30,
+                height: 80,
+                width: 80,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
             >
-              {buildDummyCard(card.type)}
+              {deck}
             </div>
-          ))}
+          </div>
+          <div
+            style={{
+              position: "relative",
+              width: 400,
+              height: 300,
+              transform: "scale(0.9)",
+            }}
+          >
+            {discardPile.map((card, index) => (
+              <div
+                key={card.id}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  transform: `translateX(${
+                    50 - (index % 3) * -4
+                  }%) translateY(${
+                    index % 2 ? (index % 3) * -8 : (index % 3) * 8
+                  }px) rotate(${
+                    index % 2 ? (index % 3) * -4 : (index % 3) * 4
+                  }deg)`,
+                }}
+              >
+                {buildDummyCard(card.type)}
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            background: currentPlayer === user.id && "red",
-          }}
-        >
+        {otherPlayers.map((player) => {
+          return (
+            <CardWrapper position="top">
+              {Array.from(Array(hands[player]).keys()).map((card) => (
+                <CardComponent isBackface={true} key={card} />
+              ))}
+            </CardWrapper>
+          );
+        })}
+
+        <CardWrapper position="bottom">
           {hand.map((card) => (
             <span key={card.id} onClick={() => handlePlayCard(card)}>
               {buildDummyCard(card.type)}
             </span>
           ))}
-        </div>
+        </CardWrapper>
       </div>
 
       {cardOverlay.length > 0 && (
@@ -247,7 +293,7 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
             background: "rgba(0,0,0,0.8",
             display: "flex",
             justifyContent: "center",
-            alignContent: "center",
+            alignItems: "center",
             height: "100%",
           }}
           onClick={closeCardOverlay}
