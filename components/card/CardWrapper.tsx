@@ -2,7 +2,7 @@ import React from "react";
 
 import styles from "./CardWrapper.module.css";
 
-interface ICardWrapperProps {
+export interface ICardWrapperProps {
   position: "bottom" | "top";
 }
 

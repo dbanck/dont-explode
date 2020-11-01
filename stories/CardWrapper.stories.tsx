@@ -1,8 +1,8 @@
 import React from "react";
 import { Story, Meta } from "@storybook/react";
 
-import Card, { ICardProps } from "../components/card/Card";
-import CardWrapper from "../components/card/CardWrapper";
+import Card from "../components/card/Card";
+import CardWrapper, { ICardWrapperProps } from "../components/card/CardWrapper";
 
 export default {
   title: "Organisms/CardWrapper",
@@ -12,10 +12,14 @@ export default {
   },
 } as Meta;
 
-const Template: Story<ICardProps & { amount: number }> = (args) => (
-  <CardWrapper position="bottom">
-    {Array.from(Array(args.amount).keys()).map((card) => (
+const Template: Story<ICardWrapperProps & { amount: number }> = ({
+  amount,
+  position,
+}) => (
+  <CardWrapper position={position}>
+    {Array.from(Array(amount).keys()).map((card) => (
       <Card
+        isBackface={position !== "bottom"}
         key={card}
         title={card.toString()}
         description="Maybe next time..."
@@ -27,5 +31,6 @@ const Template: Story<ICardProps & { amount: number }> = (args) => (
 
 export const Default = Template.bind({});
 Default.args = {
-  amount: 20,
+  amount: 8,
+  position: "bottom",
 };
