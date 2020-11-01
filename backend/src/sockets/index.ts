@@ -67,20 +67,32 @@ const objectMap = (obj: any, fn: any) =>
   Object.fromEntries(Object.entries(obj).map(([k, v], i) => [k, fn(v, k, i)]));
 
 const sendUpdateMove = (
-  game: Game,
+  gameId: string,
   deck: GameState["deck"],
   hands: GameState["hands"],
   currentPlayer: string,
   discard: GameState["discard"],
 ) => {
-  game.players.forEach((player) => {
-    io.to(users[player].socketId).emit("update_move", {
-      hand: hands[player],
-      deck: deck.length,
-      hands: objectMap(hands, (hand: Card[]) => hand.length),
-      currentPlayer,
-      discard,
-    });
+  broadcastToGame(gameId, "update_move", (player) => ({
+    hand: hands[player],
+    deck: deck.length,
+    hands: objectMap(hands, (hand: Card[]) =>
+      hand.map((card) => ({
+        id: card.id,
+      })),
+    ),
+    currentPlayer,
+    discard,
+  }));
+};
+
+const broadcastToGame = (
+  gameId: string,
+  message: string,
+  callback: (player: string) => any,
+) => {
+  games[gameId].players.forEach((player) => {
+    io.to(users[player].socketId).emit(message, callback(player));
   });
 };
 
@@ -175,7 +187,7 @@ export function createSocketServer(server: Server) {
         deadPlayers: [],
       };
 
-      sendUpdateMove(game, deck, hands, currentPlayer, []);
+      sendUpdateMove(gameId, deck, hands, currentPlayer, []);
 
       games[gameId].status = GameStatus.Started;
 
@@ -227,12 +239,10 @@ export function createSocketServer(server: Server) {
           gameState[gameId].hands[userId] = []; // u dead bro
 
           // annouce the death of the player
-          game.players.forEach((player) => {
-            io.to(users[player].socketId).emit("game_event", {
-              player: userId,
-              condition: "lose",
-            });
-          });
+          broadcastToGame(gameId, "game_event", () => ({
+            player: userId,
+            condition: "lose",
+          }));
           gameState[gameId].deadPlayers.push(userId);
 
           if (
@@ -246,12 +256,10 @@ export function createSocketServer(server: Server) {
             );
 
             // announce the winner
-            game.players.forEach((player) => {
-              io.to(users[player].socketId).emit("game_event", {
-                player: winner,
-                condition: "win",
-              });
-            });
+            broadcastToGame(gameId, "game_event", () => ({
+              player: winner,
+              condition: "win",
+            }));
           }
         }
       } else {
@@ -280,7 +288,7 @@ export function createSocketServer(server: Server) {
         gameState[gameId].currentPlayer = nextPlayer;
       }
 
-      sendUpdateMove(game, deck, hands, nextPlayer, discard);
+      sendUpdateMove(gameId, deck, hands, nextPlayer, discard);
     });
 
     socket.on(
@@ -346,7 +354,7 @@ export function createSocketServer(server: Server) {
         const hands = gameState[gameId].hands;
         const discard = gameState[gameId].discard;
 
-        sendUpdateMove(game, deck, hands, nextPlayer, discard);
+        sendUpdateMove(gameId, deck, hands, nextPlayer, discard);
       },
     );
 
@@ -356,11 +364,10 @@ export function createSocketServer(server: Server) {
         return;
       }
 
-      // TODO! save cardId hovered by userID in gameId and return cardId/hand-index to clients
-      console.log("hovering cardId for player", cardId, userId);
+      broadcastToGame(gameId, "hover_card", () => cardId);
     });
 
-    socket.on("unhover_card", (gameId: string) => {
+    socket.on("unhover_card", (gameId: string, cardId: string) => {
       if (!games[gameId] || !gameState[gameId]) {
         console.warn(
           `Cannot unhover card for user ${userId} for game with id`,
@@ -369,8 +376,7 @@ export function createSocketServer(server: Server) {
         return;
       }
 
-      // TODO! reset hovering state for gameId and userId
-      console.log("unhovering card for game and player", gameId, userId);
+      broadcastToGame(gameId, "unhover_card", () => cardId);
     });
 
     socket.on("leave_game", (gameId: string) => {

@@ -49,6 +49,8 @@ export interface Card {
   type: CardType;
 }
 
+export type HiddenCard = Pick<Card, "id">;
+
 export type DeckTemplate = {
   [key in CardType]: number;
 };

@@ -75,10 +75,11 @@ export const hoverCard = (gameId: string, cardId: string) => {
   socket.emit("hover_card", gameId, cardId);
 };
 
-export const unhoverCard = (gameId: string) => {
+export const unhoverCard = (gameId: string, cardId: string) => {
   if (!socket) {
     throw new Error("No socket connection!");
   }
 
-  socket.emit("unhover_card", gameId);
+  // TODO? merge with hover card?
+  socket.emit("unhover_card", gameId, cardId);
 };

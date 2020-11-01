@@ -2,7 +2,14 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import CardComponent from "../../components/card/Card";
 import CardWrapper from "../../components/card/CardWrapper";
-import { Card, CardType, Game, GameStatus, User } from "../../contract/events";
+import {
+  Card,
+  CardType,
+  Game,
+  GameStatus,
+  HiddenCard,
+  User,
+} from "../../contract/events";
 import {
   handleMessage,
   leaveGame,
@@ -21,7 +28,7 @@ interface IGameProps {
 const GamePage: React.FC<IGameProps> = ({ user, games }) => {
   const [deck, setDeck] = useState<number>(0);
   const [hand, setHand] = useState<Card[]>();
-  const [hands, setHands] = useState<{ [key: string]: number }>();
+  const [hands, setHands] = useState<{ [key: string]: HiddenCard[] }>();
   const [currentPlayer, setCurrentPlayer] = useState<string>();
   const [cardOverlay, setCardOverlay] = useState<Card[]>([]);
   const [discardPile, setDiscardPile] = useState<Card[]>([]);
@@ -58,8 +65,8 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
     hoverCard(currentGame.id, cardId);
   };
 
-  const handleUnhover = () => {
-    unhoverCard(currentGame.id);
+  const handleUnhover = (cardId: string) => {
+    unhoverCard(currentGame.id, cardId);
   };
 
   const closeCardOverlay = () => {
@@ -73,7 +80,6 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
       setHands(data.hands);
       setCurrentPlayer(data.currentPlayer);
       setDiscardPile(data.discard);
-      setHovering(["3"]); // TODO! set from data. faking hovering some cards by index for now
     });
 
     handleMessage("play_cart_event", (error, data) => {
@@ -94,6 +100,14 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
       if (data.player === user.id && data.condition === "win") {
         setWinScreen(true);
       }
+    });
+
+    handleMessage("hover_card", (error, data) => {
+      setHovering([...hovering, data]);
+    });
+
+    handleMessage("unhover_card", (error, data) => {
+      setHovering(hovering.filter((card) => card !== data));
     });
 
     // effect...
@@ -191,8 +205,6 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
     (player) => player !== user.id
   );
 
-  console.log(hovering);
-
   return (
     <div>
       <div>
@@ -280,11 +292,11 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
         {otherPlayers.map((player) => {
           return (
             <CardWrapper position="top">
-              {Array.from(Array(hands[player]).keys()).map((card) => (
+              {Object.values(hands[player]).map((card) => (
                 <CardComponent
                   isBackface={true}
-                  hovering={hovering.includes(card.toString())}
-                  key={card}
+                  hovering={hovering.includes(card.id)}
+                  key={card.id}
                 />
               ))}
             </CardWrapper>
@@ -297,7 +309,7 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
               key={card.id}
               onClick={() => handlePlayCard(card)}
               onMouseEnter={() => handleHover(card.id)}
-              onMouseLeave={() => handleUnhover()}
+              onMouseLeave={() => handleUnhover(card.id)}
             >
               {buildDummyCard(card.type)}
             </span>
