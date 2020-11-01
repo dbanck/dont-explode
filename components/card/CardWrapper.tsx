@@ -23,6 +23,7 @@ const CardWrapper: React.FC<ICardWrapperProps> = ({ children, position }) => {
       {React.Children.map(children, (Child, index) => {
         return (
           <div
+            key={index}
             style={{
               left: `${50 - (React.Children.count(children) / 2 - index) * 6}%`,
               transform: `rotate(${

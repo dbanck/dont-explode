@@ -350,6 +350,29 @@ export function createSocketServer(server: Server) {
       },
     );
 
+    socket.on("hover_card", (gameId: string, cardId: string) => {
+      if (!games[gameId] || !gameState[gameId]) {
+        console.warn(`Cannot hover cardId ${cardId} for game with id`, gameId);
+        return;
+      }
+
+      // TODO! save cardId hovered by userID in gameId and return cardId/hand-index to clients
+      console.log("hovering cardId for player", cardId, userId);
+    });
+
+    socket.on("unhover_card", (gameId: string) => {
+      if (!games[gameId] || !gameState[gameId]) {
+        console.warn(
+          `Cannot unhover card for user ${userId} for game with id`,
+          gameId,
+        );
+        return;
+      }
+
+      // TODO! reset hovering state for gameId and userId
+      console.log("unhovering card for game and player", gameId, userId);
+    });
+
     socket.on("leave_game", (gameId: string) => {
       if (!games[gameId]) {
         console.warn("User", userId, "cannot leave game with id", gameId);

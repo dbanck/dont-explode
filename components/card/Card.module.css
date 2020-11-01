@@ -7,7 +7,7 @@
   border-radius: 15px;
   border: 8px solid darkgoldenrod;
   transform: scale(0.9);
-  transition: transform 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
   cursor: pointer;
   z-index: 1;
 }
@@ -26,6 +26,11 @@
 .backface:hover {
   transform: scale(0.9);
   cursor: default;
+}
+
+.hovering.backface {
+  box-shadow: 0 0 10px 8px goldenrod;
+  transform: scale(0.97);
 }
 
 .title {

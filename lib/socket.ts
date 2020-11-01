@@ -66,3 +66,19 @@ export const playCard = (gameId: string, cardId: string) => {
 
   socket.emit("play_card", gameId, cardId);
 };
+
+export const hoverCard = (gameId: string, cardId: string) => {
+  if (!socket) {
+    throw new Error("No socket connection!");
+  }
+
+  socket.emit("hover_card", gameId, cardId);
+};
+
+export const unhoverCard = (gameId: string) => {
+  if (!socket) {
+    throw new Error("No socket connection!");
+  }
+
+  socket.emit("unhover_card", gameId);
+};

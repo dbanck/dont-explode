@@ -21,4 +21,5 @@ Default.args = {
 export const Backface = Template.bind({});
 Backface.args = {
   isBackface: true,
+  hovering: false,
 };

@@ -9,6 +9,8 @@ import {
   startGame,
   drawCard,
   playCard,
+  hoverCard,
+  unhoverCard,
 } from "../../lib/socket";
 
 interface IGameProps {
@@ -25,6 +27,7 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
   const [discardPile, setDiscardPile] = useState<Card[]>([]);
   const [loseScreen, setLoseScreen] = useState<boolean>(false);
   const [winScreen, setWinScreen] = useState<boolean>(false);
+  const [hovering, setHovering] = useState<string[]>([]);
 
   const router = useRouter();
 
@@ -51,6 +54,14 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
     }
   };
 
+  const handleHover = (cardId: string) => {
+    hoverCard(currentGame.id, cardId);
+  };
+
+  const handleUnhover = () => {
+    unhoverCard(currentGame.id);
+  };
+
   const closeCardOverlay = () => {
     setCardOverlay([]);
   };
@@ -62,6 +73,7 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
       setHands(data.hands);
       setCurrentPlayer(data.currentPlayer);
       setDiscardPile(data.discard);
+      setHovering(["3"]); // TODO! set from data. faking hovering some cards by index for now
     });
 
     handleMessage("play_cart_event", (error, data) => {
@@ -179,6 +191,8 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
     (player) => player !== user.id
   );
 
+  console.log(hovering);
+
   return (
     <div>
       <div>
@@ -267,7 +281,11 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
           return (
             <CardWrapper position="top">
               {Array.from(Array(hands[player]).keys()).map((card) => (
-                <CardComponent isBackface={true} key={card} />
+                <CardComponent
+                  isBackface={true}
+                  hovering={hovering.includes(card.toString())}
+                  key={card}
+                />
               ))}
             </CardWrapper>
           );
@@ -275,7 +293,12 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
 
         <CardWrapper position="bottom">
           {hand.map((card) => (
-            <span key={card.id} onClick={() => handlePlayCard(card)}>
+            <span
+              key={card.id}
+              onClick={() => handlePlayCard(card)}
+              onMouseEnter={() => handleHover(card.id)}
+              onMouseLeave={() => handleUnhover()}
+            >
               {buildDummyCard(card.type)}
             </span>
           ))}

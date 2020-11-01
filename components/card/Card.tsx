@@ -10,6 +10,7 @@ export interface ICardProps {
   description?: string;
   imageUrl?: string;
   additionalClass?: string;
+  hovering?: boolean;
 }
 
 const Card: React.FC<ICardProps> = ({
@@ -18,11 +19,14 @@ const Card: React.FC<ICardProps> = ({
   description,
   imageUrl,
   additionalClass = "",
+  hovering = false,
 }) => {
   return (
     <div
       className={`card ${styles.container} ${
         isBackface ? `${styles.backface} noScale` : ""
+      } ${
+        isBackface && hovering ? `${styles.hovering}` : ""
       } ${additionalClass}`}
     >
       {!isBackface && (
