@@ -25,7 +25,7 @@ import socketIo from "socket.io";
      * add additional endpoints
      */
     app.get("/", (req, res) => {
-      res.send("Don't Explore Backend is running!");
+      res.send("Don't Explode Backend is running!");
     });
 
     io.on("connection", (socket) => {
