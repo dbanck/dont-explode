@@ -9,6 +9,8 @@ import {
   GameState,
   CardType,
   Card,
+  AllowedActions,
+  MessageTypes,
 } from "../../../contract/events";
 
 let io: socketIO.Server = null;
@@ -72,6 +74,8 @@ const sendUpdateMove = (
   hands: GameState["hands"],
   currentPlayer: string,
   discard: GameState["discard"],
+  currentPlayerActions: GameState["currentPlayerActions"],
+  selectCardPlayers: GameState["selectCardPlayers"],
 ) => {
   broadcastToGame(gameId, "update_move", (player) => ({
     hand: hands[player],
@@ -83,6 +87,8 @@ const sendUpdateMove = (
     ),
     currentPlayer,
     discard,
+    currentPlayerActions,
+    selectCardPlayers,
   }));
 };
 
@@ -185,9 +191,22 @@ export function createSocketServer(server: Server) {
         currentPlayer,
         discard: [],
         deadPlayers: [],
+        selectCardPlayers: {},
+        currentPlayerActions: [
+          AllowedActions.DrawCard,
+          AllowedActions.PlayCard,
+        ],
       };
 
-      sendUpdateMove(gameId, deck, hands, currentPlayer, []);
+      sendUpdateMove(
+        gameId,
+        deck,
+        hands,
+        currentPlayer,
+        [],
+        gameState[gameId].currentPlayerActions,
+        gameState[gameId].selectCardPlayers,
+      );
 
       games[gameId].status = GameStatus.Started;
 
@@ -287,8 +306,20 @@ export function createSocketServer(server: Server) {
         );
         gameState[gameId].currentPlayer = nextPlayer;
       }
+      gameState[gameId].currentPlayerActions = [
+        AllowedActions.PlayCard,
+        AllowedActions.DrawCard,
+      ];
 
-      sendUpdateMove(gameId, deck, hands, nextPlayer, discard);
+      sendUpdateMove(
+        gameId,
+        deck,
+        hands,
+        nextPlayer,
+        discard,
+        gameState[gameId].currentPlayerActions,
+        {},
+      );
     });
 
     socket.on(
@@ -320,6 +351,11 @@ export function createSocketServer(server: Server) {
         gameState[gameId].discard.push(card);
 
         let nextPlayer = gameState[gameId].currentPlayer;
+        let currentPlayerActions = [
+          AllowedActions.PlayCard,
+          AllowedActions.DrawCard,
+        ];
+        const selectCardPlayers: GameState["selectCardPlayers"] = {};
 
         //
         // Cards
@@ -349,14 +385,108 @@ export function createSocketServer(server: Server) {
             target: nextPlayer,
           };
         }
+        // Alter the Future 3
+        if (card.type === CardType.AlterTheFuture3) {
+          // TODO!: implement
+          currentPlayerActions = [AllowedActions.AlterTheFuture3];
+        }
+        // Alter the Future 5
+        if (card.type === CardType.AlterTheFuture3) {
+          // TODO!: implement
+          currentPlayerActions = [AllowedActions.AlterTheFuture5];
+        }
+        // Favor
+        if (card.type === CardType.Favor) {
+          // TODO?: validate player?
+          selectCardPlayers[targetPlayer] = undefined;
+          currentPlayerActions = [];
+        }
+
+        gameState[gameId].currentPlayerActions = currentPlayerActions;
+        gameState[gameId].selectCardPlayers = selectCardPlayers;
 
         const deck = gameState[gameId].deck; // this might get altered by the card action
         const hands = gameState[gameId].hands;
         const discard = gameState[gameId].discard;
 
-        sendUpdateMove(gameId, deck, hands, nextPlayer, discard);
+        sendUpdateMove(
+          gameId,
+          deck,
+          hands,
+          nextPlayer,
+          discard,
+          currentPlayerActions,
+          selectCardPlayers,
+        );
       },
     );
+
+    socket.on(MessageTypes.SelectCard, (gameId: string, cardId: string) => {
+      if (!games[gameId] || !gameState[gameId]) {
+        console.warn("Cannot select card for game with id", { gameId, cardId });
+        return;
+      }
+
+      if (!Object.keys(gameState[gameId].selectCardPlayers).includes(userId)) {
+        console.warn(
+          "Player isn't allowed to select a card",
+          userId,
+          "in game",
+          gameId,
+        );
+        return;
+      }
+
+      const card = gameState[gameId].hands[userId].find(
+        (card) => card.id === cardId,
+      );
+
+      if (!card) {
+        console.warn(
+          `Player ${userId} has no card ${cardId} in game ${gameId}.`,
+        );
+        return;
+      }
+
+      gameState[gameId].selectCardPlayers[userId] = card;
+
+      if (
+        Object.values(gameState[gameId].selectCardPlayers).every(
+          (v) => v !== undefined,
+        )
+      ) {
+        // all players have selected a card
+        const currentCard =
+          gameState[gameId].discard[gameState[gameId].discard.length - 1];
+
+        // Careful with userId here!
+        // Favor
+        if (currentCard.type === CardType.Favor) {
+          const donorCard = gameState[gameId].selectCardPlayers[userId];
+          gameState[gameId].hands[userId].filter(
+            (card) => card.id !== donorCard.id,
+          );
+          gameState[gameId].hands[gameState[gameId].currentPlayer].push(
+            donorCard,
+          );
+          gameState[gameId].selectCardPlayers = {};
+          gameState[gameId].currentPlayerActions = [
+            AllowedActions.PlayCard,
+            AllowedActions.DrawCard,
+          ];
+
+          sendUpdateMove(
+            gameId,
+            gameState[gameId].deck,
+            gameState[gameId].hands,
+            gameState[gameId].currentPlayer,
+            gameState[gameId].discard,
+            gameState[gameId].currentPlayerActions,
+            gameState[gameId].selectCardPlayers,
+          );
+        }
+      }
+    });
 
     socket.on("hover_card", (gameId: string, cardId: string) => {
       if (!games[gameId] || !gameState[gameId]) {

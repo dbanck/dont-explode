@@ -1,3 +1,8 @@
+export enum MessageTypes {
+  PlayCard = "play_card",
+  SelectCard = "select_card",
+}
+
 export interface User {
   id: string;
   socketId: string;
@@ -19,12 +24,25 @@ export interface Game {
   status: GameStatus;
 }
 
+export enum AllowedActions {
+  DrawCard,
+  PlayCard,
+  AlterTheFuture3,
+  AlterTheFuture5,
+}
+
 export interface GameState {
   deck: Card[];
   hands: {
     [key: string]: Card[];
   };
   currentPlayer: string;
+
+  currentPlayerActions: AllowedActions[];
+  selectCardPlayers: {
+    [key: string]: Card | undefined;
+  };
+
   discard: Card[];
   deadPlayers: string[];
   modifier?: {
@@ -42,6 +60,8 @@ export enum CardType {
   Skip,
   Attack,
   Favor,
+  AlterTheFuture3,
+  AlterTheFuture5,
 }
 
 export interface Card {
