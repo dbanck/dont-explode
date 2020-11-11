@@ -1,0 +1,9 @@
+tasks:
+  - init: yarn install
+    command: yarn dev
+  - before: cd ./backend
+    init: yarn install
+    command: yarn dev
+vscode:
+  extensions:
+    - esbenp.prettier-vscode@5.7.1:GDba64T6G+TUi1qmc6BE3A==
