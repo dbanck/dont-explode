@@ -12,8 +12,9 @@ import {
   startGame,
 } from "../lib/socket";
 import styles from "../styles/Home.module.css";
-import Footer from "../components/Layout/Footer";
-import Main from "../components/Layout/Main";
+import Footer from "../components/layout/Footer";
+import Main from "../components/layout/Main";
+import Button from "../components/common/Button";
 
 interface IHomeProps {
   user: User;
@@ -25,8 +26,8 @@ type CreateGameForm = {
 };
 
 const Home: React.FC<IHomeProps> = ({ user, games }) => {
-  const handleJoinGame = (e: SyntheticEvent<HTMLButtonElement>) => {
-    joinGame(e.currentTarget.dataset.gameId);
+  const handleJoinGame = (gameId: string) => {
+    joinGame(gameId);
   };
 
   const onSubmitHandler = (data: CreateGameForm) => {
@@ -58,10 +59,6 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
       </Head>
 
       <Main>
-        <h2 className="py-2 w-full max-w-screen-md text-2xl text-blue-100">
-          Games
-        </h2>
-
         <div
           style={{ maxHeight: "60%" }}
           className="w-full max-w-screen-md mx-8 mt-0 mb-4 bg-blue-200 overflow-y-auto"
@@ -88,13 +85,9 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
                     <td className="p-2 ml-4">{game.players.length} / 2</td>
                     <td className="p-2 ml-4 hidden">{game.status}</td>
                     <td className="px-2 ml-4 text-right">
-                      <button
-                        data-game-id={game.id}
-                        onClick={handleJoinGame}
-                        className="py-1 px-3 bg-green-400 hover:bg-green-600 transition duration-200 ease-in-out transition-colors text-white text-sm"
-                      >
+                      <Button clickHandler={() => handleJoinGame(game.id)}>
                         Join
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -105,12 +98,9 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
           )}
         </div>
         <div className="w-full max-w-screen-md m-8 mt-0 text-right">
-          <button
-            onClick={() => setCreateModalOpen(true)}
-            className="bg-green-400 hover:bg-green-600 transition duration-200 transition-colors px-2 py-1 text-white tracking-wide"
-          >
+          <Button clickHandler={() => setCreateModalOpen(true)}>
             Create Game
-          </button>
+          </Button>
         </div>
 
         {createModalOpen && (
@@ -125,16 +115,26 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
+              color: "white",
             }}
           >
             <button
-              style={{ position: "absolute", top: "20px", right: "20px" }}
+              style={{
+                position: "absolute",
+                top: "20px",
+                right: "20px",
+                color: "white",
+              }}
               onClick={() => setCreateModalOpen(false)}
             >
               X
             </button>
             <form onSubmit={handleSubmit(onSubmitHandler)}>
-              <input name="name" ref={register({ required: true })} />
+              <input
+                name="name"
+                ref={register({ required: true })}
+                style={{ color: "black" }}
+              />
               <button type="submit">Create</button>
             </form>
           </div>
