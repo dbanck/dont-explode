@@ -12,6 +12,8 @@ import {
   startGame,
 } from "../lib/socket";
 import styles from "../styles/Home.module.css";
+import Footer from "../components/Layout/Footer";
+import Main from "../components/Layout/Main";
 
 interface IHomeProps {
   user: User;
@@ -49,38 +51,67 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
   }
 
   return (
-    <div className={styles.container}>
+    <div className="flex flex-col h-screen">
       <Head>
-        <title>Create Next App</title>
+        <title>Don't explode</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h4>Games</h4>
-        <button onClick={() => setCreateModalOpen(true)}>Create Game</button>
-        <ul>
-          {games &&
-            Object.values(games).map((game) => (
-              <li key={game.id}>
-                <span>
-                  {game.name}
-                  <br />
-                  Host: {game.host}
-                  <br />
-                  Players: {game.players.length} / 4
-                  <br />
-                  Status: {game.status}
-                  <br />
-                </span>
+      <Main>
+        <h2 className="py-2 w-full max-w-screen-md text-2xl text-blue-100">
+          Games
+        </h2>
 
-                <button data-game-id={game.id} onClick={handleJoinGame}>
-                  join
-                </button>
-                <br />
-                <br />
-              </li>
-            ))}
-        </ul>
+        <div
+          style={{ maxHeight: "60%" }}
+          className="w-full max-w-screen-md mx-8 mt-0 mb-4 bg-blue-200 overflow-y-auto"
+        >
+          {games && Object.values(games).length > 0 ? (
+            <table className="w-full text-center">
+              <thead>
+                <tr>
+                  <th className="p-2 text-left">Name</th>
+                  <th className="p-2 hidden">Host</th>
+                  <th className="p-2">Players</th>
+                  <th className="p-2 hidden">Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.values(games).map((game, idx) => (
+                  <tr
+                    key={game.id}
+                    className={idx % 2 ? "bg-blue-100" : "bg-white"}
+                  >
+                    <td className="p-2 w-full text-left">{game.name}</td>
+                    <td className="p-2 ml-4 hidden">{game.host}</td>
+                    <td className="p-2 ml-4">{game.players.length} / 2</td>
+                    <td className="p-2 ml-4 hidden">{game.status}</td>
+                    <td className="px-2 ml-4 text-right">
+                      <button
+                        data-game-id={game.id}
+                        onClick={handleJoinGame}
+                        className="py-1 px-3 bg-green-400 hover:bg-green-600 transition duration-200 ease-in-out transition-colors text-white text-sm"
+                      >
+                        Join
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="p-2 text-center text-sm italic">No Games yet</div>
+          )}
+        </div>
+        <div className="w-full max-w-screen-md m-8 mt-0 text-right">
+          <button
+            onClick={() => setCreateModalOpen(true)}
+            className="bg-green-400 hover:bg-green-600 transition duration-200 transition-colors px-2 py-1 text-white tracking-wide"
+          >
+            Create Game
+          </button>
+        </div>
 
         {createModalOpen && (
           <div
@@ -108,9 +139,9 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
             </form>
           </div>
         )}
-      </main>
+      </Main>
 
-      <footer className={styles.footer}>Powered by Basti & Daniel</footer>
+      <Footer />
     </div>
   );
 };
