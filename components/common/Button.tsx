@@ -1,14 +1,21 @@
 import React from "react";
 
 interface IButtonProps {
-  clickHandler: () => void;
+  clickHandler?: () => void;
+
+  type?: "button" | "submit" | "reset"; // fixes button type
 }
 
-const Button: React.FC<IButtonProps> = ({ children, clickHandler }) => {
+const Button: React.FC<IButtonProps & React.HTMLProps<HTMLButtonElement>> = ({
+  children,
+  clickHandler,
+  ...rest
+}) => {
   return (
     <button
       onClick={clickHandler}
-      className="bg-green-400 hover:bg-green-600 transition duration-200 transition-colors px-3 py-2 leading-4 text-white tracking-wide"
+      className="h-8 bg-green-400 hover:bg-green-600 transition duration-200 transition-colors px-3 py-2 leading-none text-white tracking-wide focus:outline-none focus:bg-green-600"
+      {...rest}
     >
       {children}
     </button>

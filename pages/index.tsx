@@ -1,20 +1,16 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { SyntheticEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Game, User } from "../contract/events";
-import {
-  createGame,
-  handleMessage,
-  joinGame,
-  leaveGame,
-  startGame,
-} from "../lib/socket";
-import styles from "../styles/Home.module.css";
+import { createGame, handleMessage, joinGame } from "../lib/socket";
+
 import Footer from "../components/layout/Footer";
 import Main from "../components/layout/Main";
 import Button from "../components/common/Button";
+import TextField from "../components/common/TextField";
+import Modal from "../components/modal/Modal";
 
 interface IHomeProps {
   user: User;
@@ -22,17 +18,14 @@ interface IHomeProps {
 }
 
 type CreateGameForm = {
-  name: string;
+  gameName: string;
 };
 
 const Home: React.FC<IHomeProps> = ({ user, games }) => {
-  const handleJoinGame = (gameId: string) => {
-    joinGame(gameId);
-  };
-
-  const onSubmitHandler = (data: CreateGameForm) => {
-    createGame(data.name);
-  };
+  const router = useRouter();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [userName, setUserName] = useState(""); // TODO! use user.name and backend to store and update name
+  const { handleSubmit, register, errors } = useForm<CreateGameForm>();
 
   useEffect(() => {
     handleMessage("joined_game", (error, gameId) => {
@@ -40,12 +33,13 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
     });
   });
 
-  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const joinGameHandler = (gameId: string) => {
+    joinGame(gameId);
+  };
 
-  const router = useRouter();
-  const { handleSubmit, register, errors } = useForm<CreateGameForm>({
-    defaultValues: { name: "Tolles Spiel" },
-  });
+  const createGameHandler = (data: CreateGameForm) => {
+    createGame(data.gameName);
+  };
 
   if (!user) {
     return null;
@@ -59,6 +53,23 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
       </Head>
 
       <Main>
+        <Modal title="What's your name?" isOpen={!userName}>
+          <form
+            onSubmit={handleSubmit((data: { userName: string }) =>
+              setUserName(data.userName)
+            )}
+          >
+            <TextField
+              register={register}
+              validationRules={{ required: true, minLength: 3 }}
+              placeholder="Your name..."
+              name="userName"
+              autoFocus
+            />
+            <Button type="submit">Confirm</Button>
+          </form>
+        </Modal>
+
         <div
           style={{ maxHeight: "60%" }}
           className="w-full max-w-screen-md mx-8 mt-0 mb-4 bg-blue-200 overflow-y-auto"
@@ -82,13 +93,10 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
                   >
                     <td className="p-2 w-full text-left">{game.name}</td>
                     <td className="p-2 ml-4 hidden">{game.host}</td>
-                    <td className="p-2 ml-4">
-                      {game.players.length}
-                      <strong> / 2</strong>
-                    </td>
+                    <td className="p-2 ml-4">{game.players.length} / 2</td>
                     <td className="p-2 ml-4 hidden">{game.status}</td>
                     <td className="px-2 ml-4 text-right">
-                      <Button clickHandler={() => handleJoinGame(game.id)}>
+                      <Button clickHandler={() => joinGameHandler(game.id)}>
                         Join
                       </Button>
                     </td>
@@ -101,47 +109,25 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
           )}
         </div>
         <div className="w-full max-w-screen-md m-8 mt-0 text-right">
-          <Button clickHandler={() => setCreateModalOpen(true)}>
-            Create Game
-          </Button>
-        </div>
+          <Button clickHandler={() => setModalOpen(true)}>Create Game</Button>
 
-        {createModalOpen && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(0,0,0,0.8)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              color: "white",
-            }}
+          <Modal
+            title="Create new game"
+            isOpen={modalOpen}
+            onRequestClose={() => setModalOpen(false)}
           >
-            <button
-              style={{
-                position: "absolute",
-                top: "20px",
-                right: "20px",
-                color: "white",
-              }}
-              onClick={() => setCreateModalOpen(false)}
-            >
-              X
-            </button>
-            <form onSubmit={handleSubmit(onSubmitHandler)}>
-              <input
-                name="name"
-                ref={register({ required: true })}
-                style={{ color: "black" }}
+            <form onSubmit={handleSubmit(createGameHandler)}>
+              <TextField
+                register={register}
+                validationRules={{ required: true }}
+                placeholder="Name of your game..."
+                name="gameName"
+                autoFocus
               />
-              <button type="submit">Create</button>
+              <Button type="submit">Create</Button>
             </form>
-          </div>
-        )}
+          </Modal>
+        </div>
       </Main>
 
       <Footer />
