@@ -82,7 +82,10 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
                   >
                     <td className="p-2 w-full text-left">{game.name}</td>
                     <td className="p-2 ml-4 hidden">{game.host}</td>
-                    <td className="p-2 ml-4">{game.players.length} / 2</td>
+                    <td className="p-2 ml-4">
+                      {game.players.length}
+                      <strong> / 2</strong>
+                    </td>
                     <td className="p-2 ml-4 hidden">{game.status}</td>
                     <td className="px-2 ml-4 text-right">
                       <Button clickHandler={() => handleJoinGame(game.id)}>
