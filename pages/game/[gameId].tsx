@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+
 import CardComponent from "../../components/card/Card";
 import CardWrapper from "../../components/card/CardWrapper";
 import {
@@ -19,6 +20,10 @@ import {
   hoverCard,
   unhoverCard,
 } from "../../lib/socket";
+import Head from "next/head";
+import Main from "../../components/layout/Main";
+import Wrapper from "../../components/layout/Wrapper";
+import Button from "../../components/common/Button";
 
 interface IGameProps {
   user: User;
@@ -128,15 +133,45 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
 
   if (currentGame.status === GameStatus.Waiting) {
     return (
-      <div>
-        <p>Waiting for players {currentGame.players.length} / 4</p>
+      <Wrapper>
+        <Main>
+          <h2 className="mb-5 text-xl text-white">Waiting for players...</h2>
 
-        {currentGame.host === user.id && (
-          <button onClick={handleStartGame}>start</button>
-        )}
+          <div
+            style={{ maxHeight: "60%" }}
+            className="w-full max-w-screen-md mx-8 mt-0 mb-4 bg-blue-200 overflow-y-auto"
+          >
+            <table className="w-full text-left">
+              <thead>
+                <tr>
+                  <th className="p-2">Player</th>
+                  <th className="p-2">Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* // TODO! add empty slots for number of players */}
+                {currentGame.players.map((player, idx) => (
+                  <tr
+                    key={player}
+                    className={idx % 2 ? "bg-blue-100" : "bg-white"}
+                  >
+                    <td className="p-2">{idx + 1}</td>
+                    <td className="px-2 ml-4">{player}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-        <button onClick={handleLeaveGame}>leave</button>
-      </div>
+          <div className="w-full max-w-screen-md m-8 mt-0 text-right">
+            {currentGame.host === user.id && (
+              <Button onClick={handleStartGame}>start</Button>
+            )}
+
+            <Button onClick={handleLeaveGame}>leave</Button>
+          </div>
+        </Main>
+      </Wrapper>
     );
   }
 
@@ -206,177 +241,183 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
   );
 
   return (
-    <div>
-      <div>
-        <div
-          style={{
-            position: "relative",
-            height: "100vh",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              position: "relative",
-              transform: "scale(0.9)",
-              height: 300,
-              width: 400,
-            }}
-          >
-            {Array.from(Array(deck).keys()).map((card, index) => (
-              <div
-                key={card}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: "50%",
-                  transform: `translateX(-50%)`,
-                }}
-                onClick={handleDrawCard}
-              >
-                <CardComponent isBackface={true} key={card} />
-              </div>
-            ))}
+    <>
+      <Head>
+        <title>Game status</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <Wrapper>
+        <Main>
+          <div>
             <div
               style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                background: "rgba(255,255,255,0.7)",
-                borderRadius: "100%",
-                padding: 20,
-                fontSize: 30,
-                height: 80,
-                width: 80,
+                position: "relative",
+                height: "100vh",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              {deck}
-            </div>
-          </div>
-          <div
-            style={{
-              position: "relative",
-              width: 400,
-              height: 300,
-              transform: "scale(0.9)",
-            }}
-          >
-            {discardPile.map((card, index) => (
               <div
-                key={card.id}
                 style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  transform: `translateX(${
-                    50 - (index % 3) * -4
-                  }%) translateY(${
-                    index % 2 ? (index % 3) * -8 : (index % 3) * 8
-                  }px) rotate(${
-                    index % 2 ? (index % 3) * -4 : (index % 3) * 4
-                  }deg)`,
+                  position: "relative",
+                  transform: "scale(0.9)",
+                  height: 300,
+                  width: 400,
                 }}
               >
-                {buildDummyCard(card.type)}
+                {Array.from(Array(deck).keys()).map((card, index) => (
+                  <div
+                    key={card}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: "50%",
+                      transform: `translateX(-50%)`,
+                    }}
+                    onClick={handleDrawCard}
+                  >
+                    <CardComponent isBackface={true} key={card} />
+                  </div>
+                ))}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    background: "rgba(255,255,255,0.7)",
+                    borderRadius: "100%",
+                    padding: 20,
+                    fontSize: 30,
+                    height: 80,
+                    width: 80,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {deck}
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
+              <div
+                style={{
+                  position: "relative",
+                  width: 400,
+                  height: 300,
+                  transform: "scale(0.9)",
+                }}
+              >
+                {discardPile.map((card, index) => (
+                  <div
+                    key={card.id}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      transform: `translateX(${
+                        50 - (index % 3) * -4
+                      }%) translateY(${
+                        index % 2 ? (index % 3) * -8 : (index % 3) * 8
+                      }px) rotate(${
+                        index % 2 ? (index % 3) * -4 : (index % 3) * 4
+                      }deg)`,
+                    }}
+                  >
+                    {buildDummyCard(card.type)}
+                  </div>
+                ))}
+              </div>
+            </div>
 
-        {otherPlayers.map((player) => {
-          return (
-            <CardWrapper position="top">
-              {Object.values(hands[player]).map((card) => (
-                <CardComponent
-                  isBackface={true}
-                  hovering={hovering.includes(card.id)}
+            {otherPlayers.map((player) => {
+              return (
+                <CardWrapper position="top">
+                  {Object.values(hands[player]).map((card) => (
+                    <CardComponent
+                      isBackface={true}
+                      hovering={hovering.includes(card.id)}
+                      key={card.id}
+                    />
+                  ))}
+                </CardWrapper>
+              );
+            })}
+
+            <CardWrapper position="bottom">
+              {hand.map((card) => (
+                <span
                   key={card.id}
-                />
+                  onClick={() => handlePlayCard(card)}
+                  onMouseEnter={() => handleHover(card.id)}
+                  onMouseLeave={() => handleUnhover(card.id)}
+                >
+                  {buildDummyCard(card.type)}
+                </span>
               ))}
             </CardWrapper>
-          );
-        })}
-
-        <CardWrapper position="bottom">
-          {hand.map((card) => (
-            <span
-              key={card.id}
-              onClick={() => handlePlayCard(card)}
-              onMouseEnter={() => handleHover(card.id)}
-              onMouseLeave={() => handleUnhover(card.id)}
+          </div>
+          {cardOverlay.length > 0 && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.8",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+              }}
+              onClick={closeCardOverlay}
             >
-              {buildDummyCard(card.type)}
-            </span>
-          ))}
-        </CardWrapper>
-      </div>
-
-      {cardOverlay.length > 0 && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.8",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100%",
-          }}
-          onClick={closeCardOverlay}
-        >
-          {cardOverlay.map((card) => buildDummyCard(card.type))}
-        </div>
-      )}
-
-      {loseScreen && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.8",
-            display: "flex",
-            justifyContent: "center",
-            alignContent: "center",
-            height: "100%",
-          }}
-          onClick={handleLeaveGame}
-        >
-          <img src="https://images.unsplash.com/photo-1503963325714-4b88d72d7ada?auto=format&fit=crop&w=800&h=800" />
-        </div>
-      )}
-
-      {winScreen && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.8",
-            display: "flex",
-            justifyContent: "center",
-            alignContent: "center",
-            height: "100%",
-          }}
-          onClick={handleLeaveGame}
-        >
-          <img src="https://images.unsplash.com/photo-1582036683068-7842b873954e?auto=format&fit=crop&w=800&h=800" />
-        </div>
-      )}
-    </div>
+              {cardOverlay.map((card) => buildDummyCard(card.type))}
+            </div>
+          )}
+          {loseScreen && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.8",
+                display: "flex",
+                justifyContent: "center",
+                alignContent: "center",
+                height: "100%",
+              }}
+              onClick={handleLeaveGame}
+            >
+              <img src="https://images.unsplash.com/photo-1503963325714-4b88d72d7ada?auto=format&fit=crop&w=800&h=800" />
+            </div>
+          )}
+          {winScreen && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.8",
+                display: "flex",
+                justifyContent: "center",
+                alignContent: "center",
+                height: "100%",
+              }}
+              onClick={handleLeaveGame}
+            >
+              <img src="https://images.unsplash.com/photo-1582036683068-7842b873954e?auto=format&fit=crop&w=800&h=800" />
+            </div>
+          )}
+        </Main>
+      </Wrapper>
+    </>
   );
 };
 

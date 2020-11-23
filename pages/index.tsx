@@ -11,6 +11,7 @@ import Main from "../components/layout/Main";
 import Button from "../components/common/Button";
 import TextField from "../components/common/TextField";
 import Modal from "../components/modal/Modal";
+import Wrapper from "../components/layout/Wrapper";
 
 interface IHomeProps {
   user: User;
@@ -46,7 +47,7 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <Wrapper>
       <Head>
         <title>Don't explode</title>
         <link rel="icon" href="/favicon.ico" />
@@ -96,7 +97,7 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
                     <td className="p-2 ml-4">{game.players.length} / 2</td>
                     <td className="p-2 ml-4 hidden">{game.status}</td>
                     <td className="px-2 ml-4 text-right">
-                      <Button clickHandler={() => joinGameHandler(game.id)}>
+                      <Button onClick={() => joinGameHandler(game.id)}>
                         Join
                       </Button>
                     </td>
@@ -109,7 +110,7 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
           )}
         </div>
         <div className="w-full max-w-screen-md m-8 mt-0 text-right">
-          <Button clickHandler={() => setModalOpen(true)}>Create Game</Button>
+          <Button onClick={() => setModalOpen(true)}>Create Game</Button>
 
           <Modal
             title="Create new game"
@@ -131,7 +132,7 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
       </Main>
 
       <Footer />
-    </div>
+    </Wrapper>
   );
 };
 
