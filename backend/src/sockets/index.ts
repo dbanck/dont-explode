@@ -391,7 +391,7 @@ export function createSocketServer(server: Server) {
           currentPlayerActions = [AllowedActions.AlterTheFuture3];
         }
         // Alter the Future 5
-        if (card.type === CardType.AlterTheFuture3) {
+        if (card.type === CardType.AlterTheFuture5) {
           // TODO!: implement
           currentPlayerActions = [AllowedActions.AlterTheFuture5];
         }
