@@ -19,6 +19,7 @@ import {
   playCard,
   hoverCard,
   unhoverCard,
+  selectCard,
 } from "../../lib/socket";
 import Head from "next/head";
 import Main from "../../components/layout/Main";
@@ -32,14 +33,20 @@ interface IGameProps {
 
 const GamePage: React.FC<IGameProps> = ({ user, games }) => {
   const [deck, setDeck] = useState<number>(0);
-  const [hand, setHand] = useState<Card[]>();
-  const [hands, setHands] = useState<{ [key: string]: HiddenCard[] }>();
+  const [hand, setHand] = useState<Card[]>([]);
+  const [hands, setHands] = useState<{ [key: string]: HiddenCard[] }>({});
   const [currentPlayer, setCurrentPlayer] = useState<string>();
   const [cardOverlay, setCardOverlay] = useState<Card[]>([]);
   const [discardPile, setDiscardPile] = useState<Card[]>([]);
   const [loseScreen, setLoseScreen] = useState<boolean>(false);
   const [winScreen, setWinScreen] = useState<boolean>(false);
   const [hovering, setHovering] = useState<string[]>([]);
+  const [selectPlayerCallback, setSelectPlayerCallback] = useState<
+    Function | undefined
+  >(undefined);
+  const [selectCardCallback, setSelectCardCallback] = useState<
+    Function | undefined
+  >(undefined);
 
   const router = useRouter();
 
@@ -60,7 +67,10 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
 
   const handlePlayCard = (card: Card) => {
     if (card.type === CardType.Favor) {
-      // TODO: Select Player
+      setSelectPlayerCallback(() => (selectedPlayer: string) => {
+        setSelectPlayerCallback(undefined); // DONT CLOSE BUT WAIT FOR TARGET PLAYER ACTION
+        playCard(currentGame.id, card.id, selectedPlayer);
+      });
     } else {
       playCard(currentGame.id, card.id);
     }
@@ -85,6 +95,13 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
       setHands(data.hands);
       setCurrentPlayer(data.currentPlayer);
       setDiscardPile(data.discard);
+
+      if (user && Object.keys(data.selectCardPlayers).includes(user.id)) {
+        setSelectCardCallback(() => (cardId: string) => {
+          selectCard(currentGame.id, cardId);
+          setSelectCardCallback(undefined);
+        });
+      }
     });
 
     handleMessage("play_cart_event", (error, data) => {
@@ -233,6 +250,14 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
             imageUrl="https://images.unsplash.com/photo-1514050566906-8d077bae7046?auto=format&fit=crop&w=300"
           />
         );
+      case CardType.Favor:
+        return (
+          <CardComponent
+            title="Favor"
+            description="One player must give you a card of their choice."
+            imageUrl="https://images.unsplash.com/photo-1479271074763-7f7f1b06d771?auto=format&fit=crop&w=300"
+          />
+        );
     }
   };
 
@@ -366,7 +391,7 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: "rgba(0,0,0,0.8",
+                background: "rgba(0,0,0,0.8)",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
@@ -374,9 +399,62 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
               }}
               onClick={closeCardOverlay}
             >
-              {cardOverlay.map((card) => buildDummyCard(card.type))}
+              {cardOverlay.map((card) => (
+                <div key={card.id}>{buildDummyCard(card.type)}</div>
+              ))}
             </div>
           )}
+
+          {typeof selectPlayerCallback === "function" && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.8)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+              }}
+            >
+              {otherPlayers.map((player) => (
+                <button
+                  onClick={() => selectPlayerCallback(player)}
+                  style={{ color: "white", padding: 10, margin: 20 }}
+                  key={player}
+                >
+                  {player}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {typeof selectCardCallback === "function" && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.8)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+              }}
+            >
+              {hand.map((card) => (
+                <div key={card.id} onClick={() => selectCardCallback(card.id)}>
+                  {buildDummyCard(card.type)}
+                </div>
+              ))}
+            </div>
+          )}
+
           {loseScreen && (
             <div
               style={{

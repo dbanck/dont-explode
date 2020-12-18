@@ -1,4 +1,5 @@
 import SocketIOClient from "socket.io-client";
+import { MessageTypes } from "../contract/events";
 
 let socket: SocketIOClient.Socket;
 const ENDPOINT = "http://localhost:5555";
@@ -59,12 +60,16 @@ export const drawCard = (gameId: string) => {
   socket.emit("draw_card", gameId);
 };
 
-export const playCard = (gameId: string, cardId: string) => {
+export const playCard = (
+  gameId: string,
+  cardId: string,
+  targetPlayer?: string
+) => {
   if (!socket) {
     throw new Error("No socket connection!");
   }
 
-  socket.emit("play_card", gameId, cardId);
+  socket.emit(MessageTypes.PlayCard, gameId, cardId, targetPlayer);
 };
 
 export const hoverCard = (gameId: string, cardId: string) => {
@@ -82,4 +87,12 @@ export const unhoverCard = (gameId: string, cardId: string) => {
 
   // TODO? merge with hover card?
   socket.emit("unhover_card", gameId, cardId);
+};
+
+export const selectCard = (gameId: string, cardId: string) => {
+  if (!socket) {
+    throw new Error("No socket connection!");
+  }
+
+  socket.emit(MessageTypes.SelectCard, gameId, cardId);
 };

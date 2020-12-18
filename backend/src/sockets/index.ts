@@ -39,10 +39,10 @@ const exampleDeck = [
   { id: uuidv4(), type: CardType.Attack },
   { id: uuidv4(), type: CardType.Attack },
   { id: uuidv4(), type: CardType.Attack },
-  { id: uuidv4(), type: CardType.Nothing },
-  { id: uuidv4(), type: CardType.Nothing },
-  { id: uuidv4(), type: CardType.Nothing },
-  { id: uuidv4(), type: CardType.Nothing },
+  { id: uuidv4(), type: CardType.Favor },
+  { id: uuidv4(), type: CardType.Favor },
+  { id: uuidv4(), type: CardType.Favor },
+  { id: uuidv4(), type: CardType.Favor },
   { id: uuidv4(), type: CardType.Nothing },
   { id: uuidv4(), type: CardType.Nothing },
   { id: uuidv4(), type: CardType.Nothing },
@@ -347,7 +347,14 @@ export function createSocketServer(server: Server) {
 
         const card = gameState[gameId].hands[userId].splice(cardIndex, 1)[0];
 
-        console.log("User", userId, "played card", card);
+        console.log(
+          "User",
+          userId,
+          "played card",
+          card,
+          "with target",
+          targetPlayer,
+        );
         gameState[gameId].discard.push(card);
 
         let nextPlayer = gameState[gameId].currentPlayer;
@@ -398,7 +405,7 @@ export function createSocketServer(server: Server) {
         // Favor
         if (card.type === CardType.Favor) {
           // TODO?: validate player?
-          selectCardPlayers[targetPlayer] = undefined;
+          selectCardPlayers[targetPlayer] = null;
           currentPlayerActions = [];
         }
 
@@ -452,7 +459,7 @@ export function createSocketServer(server: Server) {
 
       if (
         Object.values(gameState[gameId].selectCardPlayers).every(
-          (v) => v !== undefined,
+          (v) => v !== null,
         )
       ) {
         // all players have selected a card
@@ -463,9 +470,9 @@ export function createSocketServer(server: Server) {
         // Favor
         if (currentCard.type === CardType.Favor) {
           const donorCard = gameState[gameId].selectCardPlayers[userId];
-          gameState[gameId].hands[userId].filter(
-            (card) => card.id !== donorCard.id,
-          );
+          gameState[gameId].hands[userId] = gameState[gameId].hands[
+            userId
+          ].filter((card) => card.id !== donorCard.id);
           gameState[gameId].hands[gameState[gameId].currentPlayer].push(
             donorCard,
           );

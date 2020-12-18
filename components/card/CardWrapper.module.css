@@ -2,6 +2,7 @@
   position: fixed;
   width: 100%;
   transition: bottom 0.2s ease-in-out;
+  left: 0;
 }
 
 .cardWrapper:not(:hover) {
