@@ -1,6 +1,7 @@
 export enum MessageTypes {
   PlayCard = "play_card",
   SelectCard = "select_card",
+  UpdateUserInfo = "update_user_info",
 }
 
 export interface User {
@@ -11,9 +12,15 @@ export interface User {
 }
 
 export enum GameStatus {
-  Waiting,
-  Started,
-  Complete,
+  Waiting = "Waiting",
+  Started = "Started",
+  Complete = "Complete",
+}
+
+export interface PlayerInfos {
+  [key: string]: {
+    name: string;
+  };
 }
 
 export interface Game {
@@ -22,6 +29,7 @@ export interface Game {
   name: string;
   players: string[];
   status: GameStatus;
+  playerInfos: PlayerInfos;
 }
 
 export enum AllowedActions {

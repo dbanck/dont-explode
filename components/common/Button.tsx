@@ -10,7 +10,7 @@ const Button: React.FC<IButtonProps & React.HTMLProps<HTMLButtonElement>> = ({
 }) => {
   return (
     <button
-      className="h-8 ml-4 bg-green-400 hover:bg-green-600 transition duration-200 transition-colors px-3 py-2 leading-none text-white tracking-wide focus:outline-none focus:bg-green-600"
+      className={`h-8 ml-4 bg-green-400 hover:bg-green-600 transition duration-200 transition-colors px-3 py-2 leading-none text-white tracking-wide focus:outline-none focus:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed`}
       {...rest}
     >
       {children}

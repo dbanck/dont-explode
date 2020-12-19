@@ -25,6 +25,7 @@ import Head from "next/head";
 import Main from "../../components/layout/Main";
 import Wrapper from "../../components/layout/Wrapper";
 import Button from "../../components/common/Button";
+import Modal from "../../components/modal/Modal";
 
 interface IGameProps {
   user: User;
@@ -66,6 +67,10 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
   };
 
   const handlePlayCard = (card: Card) => {
+    if (currentPlayer !== user.id) {
+      return;
+    }
+
     if (card.type === CardType.Favor) {
       setSelectPlayerCallback(() => (selectedPlayer: string) => {
         setSelectPlayerCallback(undefined); // DONT CLOSE BUT WAIT FOR TARGET PLAYER ACTION
@@ -173,7 +178,9 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
                     className={idx % 2 ? "bg-blue-100" : "bg-white"}
                   >
                     <td className="p-2">{idx + 1}</td>
-                    <td className="px-2 ml-4">{player}</td>
+                    <td className="px-2 ml-4">
+                      {currentGame.playerInfos[player].name}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -358,7 +365,10 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
 
             {otherPlayers.map((player) => {
               return (
-                <CardWrapper position="top">
+                <CardWrapper
+                  position="top"
+                  playersTurn={currentPlayer === player}
+                >
                   {Object.values(hands[player]).map((card) => (
                     <CardComponent
                       isBackface={true}
@@ -370,7 +380,10 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
               );
             })}
 
-            <CardWrapper position="bottom">
+            <CardWrapper
+              position="bottom"
+              playersTurn={currentPlayer === user.id}
+            >
               {hand.map((card) => (
                 <span
                   key={card.id}
@@ -383,77 +396,38 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
               ))}
             </CardWrapper>
           </div>
-          {cardOverlay.length > 0 && (
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: "rgba(0,0,0,0.8)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-              }}
-              onClick={closeCardOverlay}
-            >
-              {cardOverlay.map((card) => (
-                <div key={card.id}>{buildDummyCard(card.type)}</div>
-              ))}
-            </div>
-          )}
 
-          {typeof selectPlayerCallback === "function" && (
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: "rgba(0,0,0,0.8)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-              }}
-            >
-              {otherPlayers.map((player) => (
-                <button
-                  onClick={() => selectPlayerCallback(player)}
-                  style={{ color: "white", padding: 10, margin: 20 }}
-                  key={player}
-                >
-                  {player}
-                </button>
-              ))}
-            </div>
-          )}
+          <Modal
+            title="See the future"
+            isOpen={cardOverlay.length > 0}
+            onRequestClose={closeCardOverlay}
+          >
+            {cardOverlay.map((card) => (
+              <div key={card.id}>{buildDummyCard(card.type)}</div>
+            ))}
+          </Modal>
 
-          {typeof selectCardCallback === "function" && (
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: "rgba(0,0,0,0.8)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-              }}
-            >
-              {hand.map((card) => (
-                <div key={card.id} onClick={() => selectCardCallback(card.id)}>
-                  {buildDummyCard(card.type)}
-                </div>
-              ))}
-            </div>
-          )}
+          <Modal
+            title="Select a player"
+            isOpen={typeof selectPlayerCallback === "function"}
+          >
+            {otherPlayers.map((player) => (
+              <Button onClick={() => selectPlayerCallback(player)} key={player}>
+                {currentGame.playerInfos[player].name}
+              </Button>
+            ))}
+          </Modal>
+
+          <Modal
+            title="Select a card"
+            isOpen={typeof selectCardCallback === "function"}
+          >
+            {hand.map((card) => (
+              <div key={card.id} onClick={() => selectCardCallback(card.id)}>
+                {buildDummyCard(card.type)}
+              </div>
+            ))}
+          </Modal>
 
           {loseScreen && (
             <div

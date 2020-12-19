@@ -4,20 +4,28 @@ import styles from "./CardWrapper.module.css";
 
 export interface ICardWrapperProps {
   position: "bottom" | "top";
+  playersTurn: boolean;
 }
 
-const CardWrapper: React.FC<ICardWrapperProps> = ({ children, position }) => {
+const CardWrapper: React.FC<ICardWrapperProps> = ({
+  children,
+  position,
+  playersTurn,
+}) => {
   return (
     <div
       className={`${styles.cardWrapper} ${
         position !== "bottom" ? styles.opponent : ""
-      }`}
+      } ${playersTurn ? styles.playersTurn : ""}`}
       style={
         position === "bottom"
           ? {
               bottom: (30 + React.Children.count(children) / 4) * 10,
             }
-          : { top: 120, transform: "rotate(180deg)" }
+          : {
+              top: 120,
+              transform: "rotate(180deg)",
+            }
       }
     >
       {React.Children.map(children, (Child, index) => {

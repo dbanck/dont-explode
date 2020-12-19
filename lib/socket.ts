@@ -96,3 +96,11 @@ export const selectCard = (gameId: string, cardId: string) => {
 
   socket.emit(MessageTypes.SelectCard, gameId, cardId);
 };
+
+export const updateUserInfo = (name: string) => {
+  if (!socket) {
+    throw new Error("No socket connection!");
+  }
+
+  socket.emit(MessageTypes.UpdateUserInfo, name);
+};

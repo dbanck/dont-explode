@@ -1,7 +1,7 @@
 import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 
-import { Game, GameState, User } from "../contract/events";
+import { Game, GameState, MessageTypes, User } from "../contract/events";
 import { handleMessage } from "../lib/socket";
 
 import "../styles/globals.css";
@@ -14,6 +14,10 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     handleMessage("welcome", (error, data) => {
       setUser({ id: data.userId });
       setGames(data.games);
+    });
+
+    handleMessage(MessageTypes.UpdateUserInfo, (error, data) => {
+      setUser(data);
     });
 
     handleMessage("update_games", (error, games) => {

@@ -3,8 +3,13 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { Game, User } from "../contract/events";
-import { createGame, handleMessage, joinGame } from "../lib/socket";
+import { Game, User, GameStatus } from "../contract/events";
+import {
+  createGame,
+  handleMessage,
+  joinGame,
+  updateUserInfo,
+} from "../lib/socket";
 
 import Footer from "../components/layout/Footer";
 import Main from "../components/layout/Main";
@@ -25,7 +30,6 @@ type CreateGameForm = {
 const Home: React.FC<IHomeProps> = ({ user, games }) => {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
-  const [userName, setUserName] = useState(""); // TODO! use user.name and backend to store and update name
   const { handleSubmit, register, errors } = useForm<CreateGameForm>();
 
   useEffect(() => {
@@ -42,6 +46,10 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
     createGame(data.gameName);
   };
 
+  const updateUserInfoHandler = (username: string) => {
+    updateUserInfo(username);
+  };
+
   if (!user) {
     return null;
   }
@@ -54,10 +62,10 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
       </Head>
 
       <Main>
-        <Modal title="What's your name?" isOpen={!userName}>
+        <Modal title="What's your name?" isOpen={!user.name}>
           <form
             onSubmit={handleSubmit((data: { userName: string }) =>
-              setUserName(data.userName)
+              updateUserInfoHandler(data.userName)
             )}
           >
             <TextField
@@ -80,9 +88,9 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
               <thead>
                 <tr>
                   <th className="p-2 text-left">Name</th>
-                  <th className="p-2 hidden">Host</th>
+                  <th className="p-2">Host</th>
                   <th className="p-2">Players</th>
-                  <th className="p-2 hidden">Status</th>
+                  <th className="p-2">Status</th>
                   <th></th>
                 </tr>
               </thead>
@@ -93,13 +101,19 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
                     className={idx % 2 ? "bg-blue-100" : "bg-white"}
                   >
                     <td className="p-2 w-full text-left">{game.name}</td>
-                    <td className="p-2 ml-4 hidden">{game.host}</td>
+                    <td className="p-2 ml-4">
+                      {game.playerInfos[game.host].name}
+                    </td>
                     <td className="p-2 ml-4">{game.players.length} / 2</td>
-                    <td className="p-2 ml-4 hidden">{game.status}</td>
+                    <td className="p-2 ml-4">{game.status}</td>
                     <td className="px-2 ml-4 text-right">
-                      <Button onClick={() => joinGameHandler(game.id)}>
-                        Join
-                      </Button>
+                      {game.status === GameStatus.Waiting ? (
+                        <Button onClick={() => joinGameHandler(game.id)}>
+                          Join
+                        </Button>
+                      ) : (
+                        <Button disabled={true}>Join</Button>
+                      )}
                     </td>
                   </tr>
                 ))}

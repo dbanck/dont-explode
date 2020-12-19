@@ -5,6 +5,17 @@
   left: 0;
 }
 
+.playersTurn::before {
+  position: absolute;
+  content: "";
+  width: 30px;
+  height: 30px;
+  background: red;
+  border-radius: 50%;
+  left: 100px;
+  top: 50px;
+}
+
 .cardWrapper:not(:hover) {
   bottom: 100px !important;
 }

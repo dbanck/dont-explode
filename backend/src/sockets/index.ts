@@ -125,6 +125,14 @@ export function createSocketServer(server: Server) {
 
     socket.emit("welcome", { userId, games });
 
+    socket.on(MessageTypes.UpdateUserInfo, (name: string) => {
+      users[userId].name = name;
+
+      const { socketId, ...user } = users[userId];
+
+      socket.emit(MessageTypes.UpdateUserInfo, user);
+    });
+
     socket.on("join_game", (gameId: string) => {
       if (
         games[gameId].status === GameStatus.Waiting &&
@@ -132,6 +140,9 @@ export function createSocketServer(server: Server) {
         !games[gameId].players.includes(userId)
       ) {
         games[gameId].players.push(userId);
+        games[gameId].playerInfos[userId] = {
+          name: users[userId].name,
+        };
         users[userId].activeGame = gameId;
 
         io.emit("update_games", games);
@@ -148,6 +159,11 @@ export function createSocketServer(server: Server) {
         host: userId,
         players: [userId],
         status: GameStatus.Waiting,
+        playerInfos: {
+          [userId]: {
+            name: users[userId].name,
+          },
+        },
       };
 
       users[userId].activeGame = gameId;
@@ -363,13 +379,23 @@ export function createSocketServer(server: Server) {
           AllowedActions.DrawCard,
         ];
         const selectCardPlayers: GameState["selectCardPlayers"] = {};
+        const modifier = gameState[gameId].modifier;
 
         //
         // Cards
         //
         // Skip
         if (card.type === CardType.Skip) {
-          nextPlayer = getNextPlayer(nextPlayer, game.players);
+          if (modifier) {
+            if (modifier.card.type === CardType.Attack) {
+              nextPlayer = modifier.target;
+            }
+
+            gameState[gameId].modifier = undefined; // clear modifier for next round
+          } else {
+            nextPlayer = getNextPlayer(nextPlayer, game.players);
+          }
+
           gameState[gameId].currentPlayer = nextPlayer;
         }
         // See the future
