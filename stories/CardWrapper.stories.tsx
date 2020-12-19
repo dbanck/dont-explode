@@ -15,8 +15,9 @@ export default {
 const Template: Story<ICardWrapperProps & { amount: number }> = ({
   amount,
   position,
+  playersTurn,
 }) => (
-  <CardWrapper position={position}>
+  <CardWrapper position={position} playersTurn={playersTurn}>
     {Array.from(Array(amount).keys()).map((card) => (
       <Card
         isBackface={position !== "bottom"}
@@ -33,4 +34,5 @@ export const Default = Template.bind({});
 Default.args = {
   amount: 8,
   position: "bottom",
+  playersTurn: false,
 };
