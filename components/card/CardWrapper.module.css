@@ -1,0 +1,34 @@
+.cardWrapper {
+  position: fixed;
+  width: 100%;
+  transition: bottom 0.2s ease-in-out;
+  left: 0;
+}
+
+.playersTurn::before {
+  position: absolute;
+  content: "";
+  width: 30px;
+  height: 30px;
+  background: red;
+  border-radius: 50%;
+  left: 100px;
+  top: 50px;
+}
+
+.cardWrapper:not(:hover) {
+  bottom: 100px !important;
+}
+
+.opponent,
+.opponent:not(:hover) {
+  bottom: auto !important;
+}
+
+.item {
+  position: absolute;
+}
+
+.item:not(:hover) {
+  z-index: -1;
+}

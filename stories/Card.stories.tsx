@@ -17,3 +17,9 @@ Default.args = {
   imageUrl:
     "https://images.unsplash.com/photo-1530433331547-e064ffe8eef1?&auto=format&fit=crop&w=300",
 };
+
+export const Backface = Template.bind({});
+Backface.args = {
+  isBackface: true,
+  hovering: false,
+};

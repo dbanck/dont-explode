@@ -1,22 +1,41 @@
 import React from "react";
 import styles from "./Card.module.css";
 
+import CardFront from "./CardFront";
+
+// TODO! make this OR that props with never
 export interface ICardProps {
-  title: string;
-  description: string;
-  imageUrl: string;
+  isBackface?: boolean;
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  additionalClass?: string;
+  hovering?: boolean;
 }
 
-const Card: React.FC<ICardProps> = ({ title, description, imageUrl }) => {
+const Card: React.FC<ICardProps> = ({
+  isBackface = false,
+  title,
+  description,
+  imageUrl,
+  additionalClass = "",
+  hovering = false,
+}) => {
   return (
-    <div className={styles.container}>
-      <div className={styles.title}>{title}</div>
-      <div className={styles.image}>
-        <img src={imageUrl} />
-      </div>
-      <div className={styles.description}>
-        <div>{description}</div>
-      </div>
+    <div
+      className={`card ${styles.container} ${
+        isBackface ? `${styles.backface} noScale` : ""
+      } ${
+        isBackface && hovering ? `${styles.hovering}` : ""
+      } ${additionalClass}`}
+    >
+      {!isBackface && (
+        <CardFront
+          title={title}
+          description={description}
+          imageUrl={imageUrl}
+        />
+      )}
     </div>
   );
 };
