@@ -14,10 +14,10 @@ const CardFront: React.FC<ICardFrontProps> = ({
 }) => {
   return (
     <>
-      <div className={styles.title}>{title}</div>
       <div className={styles.image}>
         <img src={imageUrl} />
       </div>
+      <div className={styles.title}>{title}</div>
       <div className={styles.description}>
         <div>{description}</div>
       </div>
