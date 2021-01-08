@@ -104,10 +104,11 @@ const Home: React.FC<IHomeProps> = ({ user, games }) => {
                     <td className="p-2 ml-4">
                       {game.playerInfos[game.host].name}
                     </td>
-                    <td className="p-2 ml-4">{game.players.length} / 2</td>
+                    <td className="p-2 ml-4">{game.players.length} / 4</td>
                     <td className="p-2 ml-4">{game.status}</td>
                     <td className="px-2 ml-4 text-right">
-                      {game.status === GameStatus.Waiting ? (
+                      {game.status === GameStatus.Waiting &&
+                      game.players.length < 4 ? (
                         <Button onClick={() => joinGameHandler(game.id)}>
                           Join
                         </Button>
