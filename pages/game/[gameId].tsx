@@ -29,6 +29,7 @@ import Modal from "../../components/modal/Modal";
 import { buildCard } from "../../components/card/factory";
 import SelectCardOverlay from "../../components/overlays/SelectCardOverlay";
 import SelectPlayerOverlay from "../../components/overlays/SelectPlayerOverlay";
+import ShowCardsOverlay from "../../components/overlays/ShowCardsOverlay";
 
 interface IGameProps {
   user: User;
@@ -334,15 +335,12 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
             </CardWrapper>
           </div>
 
-          <Modal
-            title="See the future"
-            isOpen={cardOverlay.length > 0}
-            onRequestClose={closeCardOverlay}
-          >
-            {cardOverlay.map((card) => (
-              <div key={card.id}>{buildCard(card.type)}</div>
-            ))}
-          </Modal>
+          {cardOverlay.length > 0 && (
+            <ShowCardsOverlay
+              closeOverlayCallback={closeCardOverlay}
+              cards={cardOverlay}
+            />
+          )}
 
           <SelectPlayerOverlay
             selectPlayerCallback={selectPlayerCallback}
