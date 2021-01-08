@@ -175,7 +175,6 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
                 </tr>
               </thead>
               <tbody>
-                {/* // TODO! add empty slots for number of players */}
                 {currentGame.players.map((player, idx) => (
                   <tr
                     key={player}
@@ -187,6 +186,20 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
                       {currentGame.playerInfos[player].isHost && (
                         <span className="ml-2 text-gray-500">(Host)</span>
                       )}
+                    </td>
+                  </tr>
+                ))}
+
+                {[...Array(4 - currentGame.players.length)].map((_, idx) => (
+                  <tr
+                    key={`empty-slot-${idx}`}
+                    className={idx % 2 === 0 ? "bg-blue-100" : "bg-white"}
+                  >
+                    <td className="p-2">
+                      {idx + currentGame.players.length + 1}
+                    </td>
+                    <td className="px-2 ml-4 w-full">
+                      <span className="text-gray-500 italic">Empty slot</span>
                     </td>
                   </tr>
                 ))}
