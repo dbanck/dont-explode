@@ -20,6 +20,7 @@ export enum GameStatus {
 export interface PlayerInfos {
   [key: string]: {
     name: string;
+    isHost: boolean;
   };
 }
 

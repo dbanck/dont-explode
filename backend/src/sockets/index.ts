@@ -142,6 +142,7 @@ export function createSocketServer(server: Server) {
         games[gameId].players.push(userId);
         games[gameId].playerInfos[userId] = {
           name: users[userId].name,
+          isHost: false,
         };
         users[userId].activeGame = gameId;
 
@@ -162,6 +163,7 @@ export function createSocketServer(server: Server) {
         playerInfos: {
           [userId]: {
             name: users[userId].name,
+            isHost: true,
           },
         },
       };

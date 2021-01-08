@@ -181,8 +181,11 @@ const GamePage: React.FC<IGameProps> = ({ user, games }) => {
                     className={idx % 2 ? "bg-blue-100" : "bg-white"}
                   >
                     <td className="p-2">{idx + 1}</td>
-                    <td className="px-2 ml-4">
-                      {currentGame.playerInfos[player].name}
+                    <td className="px-2 ml-4 w-full">
+                      <span>{currentGame.playerInfos[player].name}</span>
+                      {currentGame.playerInfos[player].isHost && (
+                        <span className="ml-2 text-gray-500">(Host)</span>
+                      )}
                     </td>
                   </tr>
                 ))}
