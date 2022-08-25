@@ -1,20 +1,31 @@
 import type { AppProps } from "next/app";
-import { useEffect } from "react";
-import socketIOClient from "socket.io-client";
+import { useEffect, useState } from "react";
 
-const ENDPOINT = "http://localhost:5555";
+import { Game, GameState, MessageTypes, User } from "../contract/events";
+import { handleMessage } from "../lib/socket";
 
 import "../styles/globals.css";
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
+  const [games, setGames] = useState<{ [key: string]: Game }>({});
+  const [user, setUser] = useState<Omit<User, "socketId">>();
+
   useEffect(() => {
-    const socket = socketIOClient(ENDPOINT);
-    socket.on("FromAPI", (data) => {
-      console.log(data);
+    handleMessage("welcome", (error, data) => {
+      setUser({ id: data.userId });
+      setGames(data.games);
+    });
+
+    handleMessage(MessageTypes.UpdateUserInfo, (error, data) => {
+      setUser(data);
+    });
+
+    handleMessage("update_games", (error, games) => {
+      setGames(games);
     });
   }, []);
 
-  return <Component {...pageProps} />;
+  return <Component {...pageProps} user={user} games={games} />;
 };
 
 export default MyApp;

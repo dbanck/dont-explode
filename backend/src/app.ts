@@ -1,13 +1,13 @@
 import http from "http";
 import express from "express";
 import errorHandler from "errorhandler";
-import socketIo from "socket.io";
+
+import { createSocketServer } from "./sockets";
 
 (async () => {
   try {
     const app = express();
     const server = http.createServer(app);
-    const io = socketIo(server);
 
     /**
      * set port
@@ -28,11 +28,7 @@ import socketIo from "socket.io";
       res.send("Don't Explode Backend is running!");
     });
 
-    io.on("connection", (socket) => {
-      console.log("a user connected");
-
-      socket.emit("FromAPI", "Hello World!");
-    });
+    createSocketServer(server);
 
     /**
      * Start Express server.
